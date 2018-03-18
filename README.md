@@ -25,3 +25,12 @@ The following topics / states will be used. Whereas `client_id` is set in `confi
 - `client_id/inverter_serial/kwhtoday`
 - `client_id/inverter_serial/kwhthismonth`
 - `client_id/inverter_serial/kwhtotal`
+
+## Daemon installation
+1. Create user: `sudo adduser --system --home /srv/solar-inverter solar-inverter`
+1. Install requirements: `sudo -H -u solar-inverter pip install paho-mqtt`
+1. Copy contents of dir to `/src/solar-inverter`
+1. Ensure `config.ini` is valid
+1. Copy `solar-inverter-listener.service` to `/etc/systemd/system/solar-inverter-listener.service`
+1. Enable with `sudo systemctl enable solar-inverter-listener.service`
+1. Debug with `sudo journalctl -f -u solar-inverter-listener.service`

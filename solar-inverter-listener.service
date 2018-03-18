@@ -1,0 +1,11 @@
+[Unit]
+Description=Solar Inverter listener
+
+[Service]
+Type=simple
+User=solar-inverter
+Environment=SOLAR_INVERTER_LISTENER_CONFIG_FILE=/srv/solar-inverter/config.ini
+ExecStart=/srv/solar-inverter/listen.py
+
+[Install]
+WantedBy=multi-user.target

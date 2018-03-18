@@ -9,9 +9,16 @@ import string
 import ConfigParser
 import io
 import json
+import os
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-with open("config.ini") as f:
+configFile = os.environ['SOLAR_INVERTER_LISTENER_CONFIG_FILE']
+logger.info('Reading config file: %s', configFile)
+
+with open(configFile) as f:
         sample_config = f.read()
 config = ConfigParser.RawConfigParser(allow_no_value=True)
 config.readfp(io.BytesIO(sample_config))
@@ -32,8 +39,7 @@ sock.bind((listen_address, listen_port))
 sock.listen(1)
 
 while True: 
-    if __debug__:
-        print 'waiting for a connection'
+    logger.info('Waiting for a connection')
     conn,addr = sock.accept()
     try:
         rawdata = conn.recv(1000)
@@ -44,17 +50,18 @@ while True:
             messages = []
             states = {}
             serial = binascii.unhexlify(str(hexdata[30:60]))
-            if __debug__:
-                print 'Hex data: %s' % hexdata
-                print 'Serial %s' % serial
-                print 'Length %s' % len(hexdata)
+            
+            logger.info('Hex data %s', hexdata)
+            logger.info('Serial %s', serial)
+            logger.info('Length %s', len(hexdata))
+
             topic = client_id + '/' + serial + '/'
 
             states["vpv1"] = float(int(hexdata[66:70],16))/10
             states["vpv2"] = float(int(hexdata[70:74],16))/10
             states["ipv1"] = float(int(hexdata[78:82],16))/10
             states["ipv2"] = float(int(hexdata[82:86],16))/10
-            states["output"] = float(int(hexdata[238:242],16) + int(hexdata[242:246],16))/10
+            states["output"] = float(int(hexdata[118:122],16))
             states["temp"] = float(int(hexdata[62:66],16))/10
             states["kwhtoday"] = float(int(hexdata[138:142],16))/100
             states["kwhthismonth"] = int(hexdata[174:178],16)
@@ -67,8 +74,8 @@ while True:
                     'retain': False
                 })
 
+            logger.info('Sending to mqtt: %s', messages)
             publish.multiple(messages)
 
     finally:
-        if __debug__:
-            print "Finally"
+        logger.info('Finally')
