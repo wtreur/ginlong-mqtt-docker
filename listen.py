@@ -27,7 +27,7 @@ config.read(configFile)
 
 listen_address = config['DEFAULT']['listen_address']
 listen_port = int(config['DEFAULT']['listen_port'])
-client_id = config['MQTT']['client_id']
+topic = config['MQTT']['topic']
 mqtt_server = config['MQTT']['mqtt_server']
 mqtt_port = int(config['MQTT']['mqtt_port'])
 
@@ -44,7 +44,7 @@ while True:
         hexdata = binascii.hexlify(rawdata)
 
         if(len(hexdata) == 276):
-            timestamp = (time.strftime("%F %H:%M"))
+            timestamp = str(time.time_ns())
             messages = []
             states = {}
             serial = binascii.unhexlify(hexdata[30:60]).decode('ascii')
@@ -53,27 +53,33 @@ while True:
             logger.info('Serial %s', serial)
             logger.info('Length %s', len(hexdata))
 
-            topic = client_id + '/' + serial + '/'
+            # These values are not sent, but might be useful
+            #
+            # states["vpv1"] = float(int(hexdata[66:70],16))/10
+            # states["vpv2"] = float(int(hexdata[70:74],16))/10
+            # states["ipv1"] = float(int(hexdata[78:82],16))/10
+            # states["ipv2"] = float(int(hexdata[82:86],16))/10
+            # states["temp"] = float(int(hexdata[62:66],16))/10
+            # states["kwhtoday"] = float(int(hexdata[138:142],16))/100
+            # states["kwhthismonth"] = int(hexdata[174:178],16)
 
-            states["vpv1"] = float(int(hexdata[66:70],16))/10
-            states["vpv2"] = float(int(hexdata[70:74],16))/10
-            states["ipv1"] = float(int(hexdata[78:82],16))/10
-            states["ipv2"] = float(int(hexdata[82:86],16))/10
             states["output"] = float(int(hexdata[118:122],16))
-            states["temp"] = float(int(hexdata[62:66],16))/10
-            states["kwhtoday"] = float(int(hexdata[138:142],16))/100
-            states["kwhthismonth"] = int(hexdata[174:178],16)
             states["kwhtotal"] = float(int(hexdata[146:150],16))/10
 
-            for state, value in states.items():
-                messages.append({
-                    'topic': topic + state,
-                    'payload': value,
-                    'retain': False
-                })
+            messages.append({
+                'topic': topic,
+                'payload': 'solar-power,unit=kWh generated=%s %s' % (states["kwhtotal"], timestamp),
+                'retain': False
+            })
+
+            messages.append({
+                'topic': topic,
+                'payload': "solar-power,unit=W power=%s %s" % (states["output"], timestamp),
+                'retain': False
+            })
 
             logger.info('Sending to mqtt: %s', messages)
             publish.multiple(messages)
 
     finally:
-        logger.info('Finally')
+        logger.info('Done')
