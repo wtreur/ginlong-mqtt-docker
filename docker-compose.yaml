@@ -1,0 +1,9 @@
+version: '3'
+services:
+  solar-inverter-reader:
+    build: .
+    volumes:
+    - ./config.ini:/usr/src/app/config.ini
+    ports:
+    - 9999:9999
+    restart: always

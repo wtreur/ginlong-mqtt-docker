@@ -8,14 +8,12 @@ import sys
 import string
 import configparser
 import io
-import json
-import os
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-configFile = os.environ['SOLAR_INVERTER_LISTENER_CONFIG_FILE']
+configFile = "./config.ini"
 logger.info('Reading config file: %s', configFile)
 
 config = configparser.ConfigParser()
