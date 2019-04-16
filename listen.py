@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import paho.mqtt.publish as publish
 import socket
@@ -6,7 +6,7 @@ import binascii
 import time
 import sys
 import string
-import ConfigParser
+import configparser
 import io
 import json
 import os
@@ -18,20 +18,18 @@ logger = logging.getLogger(__name__)
 configFile = os.environ['SOLAR_INVERTER_LISTENER_CONFIG_FILE']
 logger.info('Reading config file: %s', configFile)
 
-with open(configFile) as f:
-        sample_config = f.read()
-config = ConfigParser.RawConfigParser(allow_no_value=True)
-config.readfp(io.BytesIO(sample_config))
+config = configparser.ConfigParser()
+config.read(configFile)
 
 
 ###########################
 # Variables
 
-listen_address = config.get('DEFAULT', 'listen_address')
-listen_port = int(config.get('DEFAULT', 'listen_port'))
-client_id = config.get('MQTT', 'client_id')
-mqtt_server = config.get('MQTT', 'mqtt_server')
-mqtt_port = int(config.get('MQTT', 'mqtt_port'))
+listen_address = config['DEFAULT']['listen_address']
+listen_port = int(config['DEFAULT']['listen_port'])
+client_id = config['MQTT']['client_id']
+mqtt_server = config['MQTT']['mqtt_server']
+mqtt_port = int(config['MQTT']['mqtt_port'])
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -49,7 +47,7 @@ while True:
             timestamp = (time.strftime("%F %H:%M"))
             messages = []
             states = {}
-            serial = binascii.unhexlify(str(hexdata[30:60]))
+            serial = binascii.unhexlify(hexdata[30:60]).decode('ascii')
             
             logger.info('Hex data %s', hexdata)
             logger.info('Serial %s', serial)
