@@ -1,0 +1,12 @@
+[solar_converter]
+listen_address = 0.0.0.0
+listen_port = 9999
+
+[mqtt]
+topic = home/power/electricity
+server = localhost
+port = 1883
+tls = false
+auth = false
+username = 
+password = 

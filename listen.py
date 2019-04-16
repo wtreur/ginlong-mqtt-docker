@@ -25,11 +25,22 @@ config.read(configFile)
 ###########################
 # Variables
 
-listen_address = config['DEFAULT']['listen_address']
-listen_port = int(config['DEFAULT']['listen_port'])
-topic = config['MQTT']['topic']
-mqtt_server = config['MQTT']['mqtt_server']
-mqtt_port = int(config['MQTT']['mqtt_port'])
+listen_address = config.get('solar_converter', 'listen_address')
+listen_port = config.getint('solar_converter', 'listen_port')
+
+mqtt_topic = config.get('mqtt', 'topic')
+mqtt_server = config.get('mqtt', 'server')
+mqtt_port = config.getint('mqtt', 'port')
+mqtt_auth = None
+if (config.getboolean('mqtt', 'auth')):
+    mqtt_auth= {
+        'username': config.get('mqtt', 'username'),
+        'password': config.get('mqtt', 'password')
+    }
+
+mqtt_tls=None
+if (config.getboolean('mqtt', 'tls')):
+    mqtt_tls = {}
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -42,7 +53,6 @@ while True:
     try:
         rawdata = conn.recv(1000)
         hexdata = binascii.hexlify(rawdata)
-
         if(len(hexdata) == 276):
             timestamp = str(time.time_ns())
             messages = []
@@ -67,19 +77,19 @@ while True:
             states["kwhtotal"] = float(int(hexdata[146:150],16))/10
 
             messages.append({
-                'topic': topic,
+                'topic': mqtt_topic,
                 'payload': 'solar-power,unit=kWh generated=%s %s' % (states["kwhtotal"], timestamp),
                 'retain': False
             })
 
             messages.append({
-                'topic': topic,
+                'topic': mqtt_topic,
                 'payload': "solar-power,unit=W power=%s %s" % (states["output"], timestamp),
                 'retain': False
             })
 
             logger.info('Sending to mqtt: %s', messages)
-            publish.multiple(messages)
+            print(publish.multiple(msgs=messages, hostname=mqtt_server, port=mqtt_port, auth=mqtt_auth, tls=mqtt_tls))
 
     finally:
         logger.info('Done')
