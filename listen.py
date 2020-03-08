@@ -72,7 +72,7 @@ while True:
             # states["kwhthismonth"] = int(hexdata[174:178],16)
 
             states["output"] = float(int(hexdata[118:122],16))
-            states["kwhtotal"] = float(int(hexdata[146:150],16))/10
+            states["kwhtotal"] = float(int(hexdata[142:150],16))/10
 
             messages.append({
                 'topic': mqtt_topic,
