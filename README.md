@@ -2,7 +2,7 @@
 
 _Based on [dpoulson/ginlong-mqtt](https://github.com/dpoulson/ginlong-mqtt)_
 
-Script that listens to messages from a Ginlong Solor Inverter and pushes it to MQTT
+Script that listens to messages from a Ginlong Solor Inverter and pushes it to MQTT and home assistant witht the home assistant API
 
 Tested with `Solis-1P3K-4G` on firmware `H4.01.51Y4.0.02W1.0.57(2017-12-211-D)`
 

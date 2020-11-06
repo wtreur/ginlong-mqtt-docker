@@ -10,3 +10,9 @@ tls = false
 auth = false
 username = 
 password = 
+
+[hass]
+url = https://home-assistant.url
+token = hass_api_token
+sensor_generated = sensor.sensor_for_solar_generated
+sensor_power = sensor.sensor_name_for_solar_power

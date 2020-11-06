@@ -9,6 +9,7 @@ import string
 import configparser
 import io
 import logging
+from requests import post
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -88,6 +89,44 @@ while True:
 
             logger.info('Sending to mqtt: %s', messages)
             print(publish.multiple(msgs=messages, hostname=mqtt_server, port=mqtt_port, auth=mqtt_auth, tls=mqtt_tls))
+
+            if (config.has_section('hass')):
+                print('[hass] config section found, sending sensor state')
+                
+                hass_url = config.get('hass', 'url')
+                hass_token = config.get('hass', 'token')
+                hass_sensor_generated = config.get('hass', 'sensor_generated')
+                hass_sensor_power = config.get('hass', 'sensor_power')
+
+                headers = {
+                    "Authorization": 'Bearer %s' % hass_token,
+                    "content-type": "application/json",
+                }
+
+                generated_sensor_state = {
+                    'state': states["kwhtotal"],
+                    'attributes': {
+                        'unit_of_measurement': 'kWh',
+                        'icon': 'mdi:solar-power'
+                    }
+                }
+                power_sensor_state = {
+                    'state': states["output"],
+                    'attributes': {
+                        'unit_of_measurement': 'W',
+                        'icon': 'mdi:solar-power'
+                    }
+                }
+                
+                logger.info('posting sensor state %s to sensor %s...', generated_sensor_state, hass_sensor_generated)
+                response = post('%s/api/states/%s' % (hass_url, hass_sensor_generated), headers=headers, json=generated_sensor_state, timeout=5)
+                logger.info('response: %s', response.text)
+
+                logger.info('posting sensor state %s to sensor %s...', power_sensor_state, hass_sensor_power)
+                response = post('%s/api/states/%s' % (hass_url, hass_sensor_power), headers=headers, json=power_sensor_state, timeout=5)
+                logger.info('response: %s', response.text)
+            else:
+                print('No hass config found, not posting sensor values.')
 
     finally:
         logger.info('Done')
